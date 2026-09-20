@@ -14,4 +14,7 @@ module.exports = {
   manager: { email: "manager@example.com", password: "รหัสผ่านจริง", role: "manager", name: "ชื่อที่สมัครไว้" },
   employee1: { email: "employee1@example.com", password: "รหัสผ่านจริง", role: "employee", name: "ชื่อที่สมัครไว้" },
   employee2: { email: "employee2@example.com", password: "รหัสผ่านจริง", role: "employee", name: "ชื่อที่สมัครไว้" },
+  // role "hr" ตั้งผ่าน client ไม่ได้ (firestore.rules ห้ามเปลี่ยน role เอง) — สมัครผ่าน register.html
+  // แล้วให้เจ้าของโปรเจกต์แก้ users/{uid}.role เป็น "hr" ใน Firebase Console เอง
+  hr: { email: "hr@example.com", password: "รหัสผ่านจริง", role: "hr", name: "ชื่อที่สมัครไว้" },
 };
