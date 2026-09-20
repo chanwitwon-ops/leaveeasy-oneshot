@@ -1,7 +1,7 @@
 # 🔧 LeaveEasy — จุดเริ่มต้นของใบงาน
 
 🌐 **เว็บออนไลน์:** https://leaveeasy-oneshot-4545f.web.app
-🧪 **รายงานผลการทดสอบ:** [test-results.md](test-results.md) — 6/6 ผ่าน
+🧪 **รายงานผลการทดสอบ:** [test-results.md](test-results.md) — 10/10 ผ่าน
 
 **ผู้ทำ:** ชาญวิทย์ วงศ์ทิพย์ (ใบงานที่ 4 — สั่งทีเดียวจบจากสเปค แล้วทดสอบด้วย Playwright)
 
