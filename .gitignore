@@ -46,6 +46,9 @@ node_modules/.cache/
 firebase-debug.log
 firestore-debug.log
 
+# ── ไฟล์ scratch ของ Playwright MCP (ภาพหน้าจอ/accessibility tree ระหว่างคุยสดกับ Claude) ──
+.playwright-mcp/
+
 
 # ─────────────────────────────────────────────────────────────
 # ✅ วิธีตรวจว่าใช้ได้จริง — ก่อน push ทุกครั้ง พิมพ์บอก Claude ว่า
