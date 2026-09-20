@@ -1,0 +1,27 @@
+{
+  "hosting": {
+    "public": ".",
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**",
+      "package.json",
+      "package-lock.json",
+      "leaveeasy-spec.md",
+      "README.md",
+      "CLAUDE.md",
+      "BACKLOG.md",
+      "test-results.md",
+      "seed.html",
+      "js/seed.js",
+      "serve.json",
+      "tests/**",
+      "playwright.config.js",
+      "playwright-report/**",
+      "test-results/**"
+    ]
+  },
+  "firestore": {
+    "rules": "firestore.rules"
+  }
+}

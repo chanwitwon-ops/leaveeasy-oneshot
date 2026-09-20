@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>สมัครสมาชิก · LeaveEasy</title>
+  <link rel="stylesheet" href="css/style.css">
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js" defer></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js" defer></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js" defer></script>
+  <script src="js/firebase-config.js" defer></script>
+  <script src="js/auth.js" defer></script>
+</head>
+<body>
+  <div class="container" style="margin-top: 40px;">
+    <div style="max-width: 400px; margin: 0 auto;">
+      <h1 style="text-align: center;">LeaveEasy</h1>
+      <p style="text-align: center; color: #667380;">สมัครสมาชิกใหม่</p>
+
+      <div class="card">
+        <!-- ข้อความแจ้งเตือน -->
+        <div id="register-error" class="alert alert-error hidden"></div>
+        <div id="register-success" class="alert alert-ok hidden"></div>
+
+        <!-- ฟอร์มสมัครสมาชิก -->
+        <form id="register-form">
+          <label for="name">ชื่อ-นามสกุล</label>
+          <input
+            type="text"
+            id="name"
+            name="name"
+            placeholder="เช่น สมชาย ใจดี"
+            required
+            autofocus
+          >
+
+          <label for="reg-email">อีเมล</label>
+          <input
+            type="email"
+            id="reg-email"
+            name="email"
+            placeholder="user@example.com"
+            required
+          >
+
+          <label for="reg-password">รหัสผ่าน</label>
+          <input
+            type="password"
+            id="reg-password"
+            name="password"
+            placeholder="กรอกรหัสผ่านอย่างน้อย 6 ตัวอักษร"
+            required
+          >
+
+          <label for="confirm-password">ยืนยันรหัสผ่าน</label>
+          <input
+            type="password"
+            id="confirm-password"
+            name="confirm_password"
+            placeholder="กรอกรหัสผ่านอีกครั้ง"
+            required
+          >
+
+          <p class="hint">
+            บัญชีใหม่จะมีบทบาทเป็น <strong>ผู้ขอลา (employee)</strong> ตามค่าเริ่มต้น
+          </p>
+
+          <div class="btn-row">
+            <button type="submit" id="register-submit-btn">สมัครสมาชิก</button>
+          </div>
+        </form>
+
+        <!-- ลิงค์ไปหน้าเข้าสู่ระบบ -->
+        <p style="text-align: center; margin-top: 18px; color: #667380;">
+          มีบัญชีแล้ว?
+          <a href="login.html" style="color: #1f5f8b; text-decoration: none; font-weight: 600;">เข้าสู่ระบบ</a>
+        </p>
+      </div>
+
+      <!-- ลิงค์กลับหน้าแรก -->
+      <div style="text-align: center; margin-top: 18px;">
+        <a href="index.html" style="color: #1f5f8b; text-decoration: none; font-size: 15px;">← กลับหน้าแรก</a>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

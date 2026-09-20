@@ -1,5 +1,10 @@
 # 🔧 LeaveEasy — จุดเริ่มต้นของใบงาน
 
+🌐 **เว็บออนไลน์:** https://leaveeasy-oneshot-4545f.web.app
+🧪 **รายงานผลการทดสอบ:** [test-results.md](test-results.md) — 6/6 ผ่าน
+
+**ผู้ทำ:** ชาญวิทย์ วงศ์ทิพย์ (ใบงานที่ 4 — สั่งทีเดียวจบจากสเปค แล้วทดสอบด้วย Playwright)
+
 **ADT-RAISE Non-Degree Batch 2 · Module 2: MVP-Ready** (สัปดาห์ที่ 6–9)
 
 นี่คือ **เว็บ prototype ของระบบขอลาออนไลน์** ที่ทุกคนจะใช้เป็นจุดเริ่มต้นในคาบ Workshop บ่ายวันเสาร์
@@ -35,10 +40,17 @@ leave-requests.html           รายการใบลาทั้งหม�
 new-leave-request.html        ฟอร์มยื่นใบลา
 leave-request-detail.html     รายละเอียดใบลา 1 ใบ
 leave-types.html              ประเภทการลา
+login.html / register.html    เข้าสู่ระบบ / สมัครสมาชิก
+seed.html                     ใส่ข้อมูลตัวอย่างลง Firestore (ใช้ครั้งเดียวตอนตั้งค่า)
 
 css/style.css                 หน้าตาของทุกหน้า
-js/data.js                    ⚠️ ข้อมูลปลอมที่พิมพ์ค้างไว้ในไฟล์
-js/*.js                       โค้ดของแต่ละหน้า
+js/*.js                       โค้ดของแต่ละหน้า (ต่อ Firestore/Firebase Auth จริงแล้ว)
+js/data.js                    ⚠️ ข้อมูลปลอมชุดเดิม (dashboard.html ยังใช้อยู่ เพราะยังไม่ต่อข้อมูลจริงใน Module 2)
+js/firebase-config.example.js ต้นแบบการตั้งค่า Firebase — ไม่มีคีย์จริง
+js/firebase-config.js         ⚠️ ไฟล์คีย์จริงของคุณเอง (ต้องสร้างเอง ดูหัวข้อถัดไป) ถูก .gitignore กันไว้แล้ว
+js/ai-config.example.js       ต้นแบบการตั้งค่าคีย์ OpenRouter (AI ช่วยจัดประเภทการลา) — ไม่มีคีย์จริง
+js/ai-config.js               ⚠️ ไฟล์คีย์ OpenRouter จริงของคุณเอง (ต้องสร้างเอง ดูหัวข้อถัดไป) ถูก .gitignore กันไว้แล้ว
+firestore.rules               กฎเฝ้าข้อมูล (Security Rules)
 leaveeasy-spec.md             📄 ข้อกำหนดของระบบ — ชื่อโฟลเดอร์ ชื่อช่องข้อมูล สถานะ
 ```
 
@@ -48,12 +60,53 @@ leaveeasy-spec.md             📄 ข้อกำหนดของระบบ
 
 ---
 
-## ⚠️ ตอนนี้ระบบยังไม่มีความจำ
+## 🔥 ตั้งค่า Firebase ก่อนใช้งานจริง (ทำครั้งเดียว)
 
-ลองเปิด **ยื่นใบลาใหม่** → กรอกอะไรก็ได้ → กดบันทึก → **กด F5 รีเฟรช**
-ข้อมูลที่เพิ่งกรอกจะหายหมด เพราะข้อมูลทั้งหมดยังเป็นของปลอมที่พิมพ์ค้างไว้ใน `js/data.js`
+ระบบนี้ต่อกับ Firestore + Firebase Authentication จริงแล้ว แต่ **คีย์เชื่อมต่อผูกกับบัญชี Firebase ของคุณเอง**
+จึงไม่ได้ใส่มาให้ในโค้ด ต้องไปคัดลอกมาเองตามขั้นตอนนี้:
 
-**นั่นคือสิ่งที่คุณจะแก้ในสัปดาห์ที่ 6** — ต่อระบบเข้ากับคลังเก็บข้อมูลจริง
+1. เปิด [Firebase Console](https://console.firebase.google.com/) → เลือกโปรเจกต์ `leaveeasy-oneshot`
+2. เปิดใช้งาน 2 บริการนี้ (เมนูซ้าย → Build):
+   - **Authentication** → Get started → เปิดวิธี "Email/Password"
+   - **Firestore Database** → Create database → เลือก "Start in production mode"
+3. กดรูปเฟือง ⚙️ → Project settings → เลื่อนลงหา "Your apps" → เพิ่มเว็บแอป (ถ้ายังไม่มี) → คัดลอกค่า `firebaseConfig`
+4. คัดลอกไฟล์ `js/firebase-config.example.js` เป็น `js/firebase-config.js` แล้ววางค่าที่คัดลอกมาแทนที่ (ขั้นตอนละเอียดอยู่ในคอมเมนต์ของไฟล์ example)
+5. เปิด `seed.html` แล้วกดปุ่มใส่ข้อมูลตัวอย่าง **ก่อน** deploy `firestore.rules` (กฎเข้มงวดจะกันไม่ให้ seed ทับข้อมูลของ uid อื่นได้)
+6. ค่อย deploy กฎเฝ้าข้อมูล: `firebase deploy --only firestore:rules`
+
+> ⚠️ ไฟล์ `js/firebase-config.js` ถูกกันไว้ใน `.gitignore` แล้ว — **ห้ามลบการกันนี้ออก** เพราะมีคีย์จริงของบัญชีคุณอยู่ข้างใน
+
+---
+
+## 🤖 ตั้งค่า AI (OpenRouter) สำหรับปุ่ม "ให้ AI ช่วยจัดประเภทการลา" (ไม่บังคับ)
+
+หน้า **ยื่นใบลาใหม่** มีปุ่มให้ AI ช่วยเดาประเภทการลาจากเหตุผลที่พิมพ์ (US-09) เรียก OpenRouter ตรงจากเบราว์เซอร์
+ถ้ายังไม่ตั้งค่า ปุ่มนี้จะยังกดได้และหน้าเว็บใช้งานปกติทุกอย่าง แค่จะขึ้นข้อความเตือนแทนผลลัพธ์ AI
+
+1. สมัคร/ล็อกอิน [OpenRouter](https://openrouter.ai/) → ไปที่ [openrouter.ai/keys](https://openrouter.ai/keys) → กด "Create Key"
+2. คัดลอกไฟล์ `js/ai-config.example.js` เป็น `js/ai-config.js` แล้ววางคีย์แทนที่ (ขั้นตอนละเอียดอยู่ในคอมเมนต์ของไฟล์ example)
+
+> ⚠️ ไฟล์ `js/ai-config.js` ถูกกันไว้ใน `.gitignore` แล้ว — **ห้ามลบการกันนี้ออก** เพราะมีคีย์จริงของคุณอยู่ข้างใน
+> คีย์นี้ฝังอยู่ในโค้ดฝั่งเบราว์เซอร์ (ไม่มีเซิร์ฟเวอร์กลาง) เหมาะกับโปรเจกต์เรียน/เดโมเท่านั้น
+
+---
+
+## 🧪 ทดสอบอัตโนมัติ (Playwright)
+
+มีชุดทดสอบอัตโนมัติจริงในโฟลเดอร์ [`tests/`](tests/) — เปิดเบราว์เซอร์จริง ต่อ Firebase จริง ไม่ใช่ mock ดูผลล่าสุดที่ [`test-results.md`](test-results.md)
+
+1. คัดลอก `tests/test-accounts.example.js` เป็น `tests/test-accounts.local.js` แล้วใส่อีเมล/รหัสผ่านบัญชีทดสอบจริงของคุณ (สมัครผ่าน `register.html` ก่อน แล้วไปตั้ง `role` เป็น `manager`/`employee` ใน Firebase Console ตามที่ต้องการ)
+2. รัน `npm run dev` เปิดเว็บไว้ (หรือปล่อยให้ Playwright เปิดเองก็ได้)
+3. รันเทสต์ทั้งหมด: `npm test`
+
+> ⚠️ ไฟล์ `tests/test-accounts.local.js` ถูกกันไว้ใน `.gitignore` แล้ว — ห้ามลบการกันนี้ออก
+
+---
+
+## ⚠️ ก่อนต่อ Firebase ระบบยังไม่มีความจำ
+
+ก่อนทำตามขั้นตอนด้านบน ถ้าลองเปิด **ยื่นใบลาใหม่** → กรอกอะไรก็ได้ → กดบันทึก
+จะเจอ error เพราะยังไม่มีไฟล์ `js/firebase-config.js` — นั่นคือสัญญาณว่าต้องตั้งค่า Firebase ก่อนตามหัวข้อด้านบน
 
 ---
 

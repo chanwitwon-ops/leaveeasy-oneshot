@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>แดชบอร์ด · LeaveEasy</title>
+  <link rel="stylesheet" href="css/style.css">
+  <script src="js/util.js" defer></script>
+  <script src="js/nav.js" defer></script>
+  <script src="js/data.js" defer></script>
+  <script src="js/dashboard.js" defer></script>
+</head>
+<body>
+  <div id="nav"></div>
+
+  <div class="container">
+    <h1>แดชบอร์ดสรุป</h1>
+    <p class="subtitle">ภาพรวมทั้งระบบและใบลาล่าสุด (สำหรับฝ่ายบุคคล)</p>
+
+    <!-- สรุปตัวเลขตามสถานะ -->
+    <div class="stat-row">
+      <!-- กล่องนับใบลา "รอพิจารณา" -->
+      <a
+        id="pending-stat"
+        class="stat"
+        href="leave-requests.html?status=รอพิจารณา"
+        data-status="รอพิจารณา"
+      >
+        <div style="color: #7a5b00;">รอพิจารณา</div>
+        <div class="number" id="pending-count">0</div>
+      </a>
+
+      <!-- กล่องนับใบลา "อนุมัติ" -->
+      <a
+        id="approved-stat"
+        class="stat"
+        href="leave-requests.html?status=อนุมัติ"
+        data-status="อนุมัติ"
+      >
+        <div style="color: #1b5e34;">อนุมัติ</div>
+        <div class="number" id="approved-count">0</div>
+      </a>
+
+      <!-- กล่องนับใบลา "ไม่อนุมัติ" -->
+      <a
+        id="rejected-stat"
+        class="stat"
+        href="leave-requests.html?status=ไม่อนุมัติ"
+        data-status="ไม่อนุมัติ"
+      >
+        <div style="color: #8b1f1a;">ไม่อนุมัติ</div>
+        <div class="number" id="rejected-count">0</div>
+      </a>
+    </div>
+
+    <!-- รายการใบลา 5 รายการล่าสุด -->
+    <div class="card">
+      <h2>ใบลา 5 รายการล่าสุด</h2>
+      <table id="recent-list-table">
+        <thead>
+          <tr>
+            <th>หัวข้อ</th>
+            <th>ประเภทการลา</th>
+            <th>สถานะ</th>
+            <th>ผู้ขอลา</th>
+            <th>วันที่ยื่น</th>
+          </tr>
+        </thead>
+        <tbody id="recent-list">
+          <!-- แถวใบลาจะถูกเพิ่มที่นี่ด้วย JS -->
+        </tbody>
+      </table>
+
+      <!-- ข้อความเมื่อไม่มีใบลา -->
+      <div id="empty-recent" class="hidden" style="padding: 30px; text-align: center;">
+        <p style="color: #667380; font-size: 18px;">ยังไม่มีใบขอลาในระบบ</p>
+      </div>
+    </div>
+
+    <!-- ปุ่มกลับ -->
+    <div class="btn-row">
+      <a class="btn btn-ghost" href="leave-requests.html">← ไปหน้ารายการทั้งหมด</a>
+      <a class="btn btn-ghost" href="index.html">← กลับหน้าแรก</a>
+    </div>
+  </div>
+</body>
+</html>

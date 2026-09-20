@@ -1,30 +1,65 @@
 // ─────────────────────────────────────────────────────────────
 // js/leave-request-detail.js — หน้าที่ 3 รายละเอียดใบลา
-// สัปดาห์ที่ 6 (ต้นสัปดาห์): อ่านจากข้อมูลปลอม และเปลี่ยนสถานะในหน่วยความจำ
+// อ่าน/แก้/ลบข้อมูลจริงจาก Firestore
+//
+// กติกาสถานะ (หัวข้อ 6 ของสเปค):
+// - อนุมัติ/ไม่อนุมัติ ได้เฉพาะ manager/hr และเฉพาะใบที่ยังรอพิจารณา
+// - เปลี่ยนเป็นไม่อนุมัติ ต้องมีความเห็นอย่างน้อย 1 รายการมาก่อน
+// - ลบใบได้เฉพาะเจ้าของใบ และเฉพาะใบที่ยังรอพิจารณา
+// - เขียนความเห็นใหม่ได้เฉพาะ manager/hr (ตามกฎเฝ้าข้อมูล subcollection approvals)
 // ─────────────────────────────────────────────────────────────
 
 (function () {
   var รหัสใบลา = ค่าจากURL("id");
-  var กล่องใบลา = document.getElementById("กล่องใบลา");
-  var กล่องความเห็น = document.getElementById("กล่องความเห็น");
 
-  // หาใบลาจากข้อมูลปลอม บวกกับใบที่เพิ่งยื่นในหน้าที่ 2
-  var ใบลาที่ยื่นใหม่ = JSON.parse(sessionStorage.getItem("ใบลาที่ยื่นใหม่") || "[]");
-  var ใบ = window.LEAVE_DATA.leaveRequests.concat(ใบลาที่ยื่นใหม่)
-    .find(function (x) { return x.id === รหัสใบลา; });
+  var detailContainer = document.getElementById("detail-container");
+  var actionButtons = document.getElementById("action-buttons");
+  var approveBtn = document.getElementById("approve-btn");
+  var rejectBtn = document.getElementById("reject-btn");
+  var deleteBtn = document.getElementById("delete-btn");
 
-  if (!ใบ) {
-    กล่องใบลา.innerHTML = "<p>ไม่พบใบขอลาที่ต้องการ — อาจถูกลบไปแล้ว หรือลิงก์ไม่ถูกต้อง</p>";
-    return;
+  var commentsSection = document.getElementById("comments-section");
+  var commentsList = document.getElementById("comments-list");
+  var emptyComments = document.getElementById("empty-comments");
+  var commentInput = document.getElementById("comment-input");
+  var commentError = document.getElementById("comment-error");
+  var submitCommentBtn = document.getElementById("submit-comment-btn");
+  var commentLabel = document.querySelector('label[for="comment-input"]');
+  var commentBtnRow = submitCommentBtn ? submitCommentBtn.closest(".btn-row") : null;
+
+  var ใบRef, ใบ, ผู้ใช้ปัจจุบัน, จำนวนความเห็น = 0;
+
+  window.currentUserPromise.then(function (user) {
+    if (!user) return; // nav.js กำลังเด้งไปหน้า login.html อยู่แล้ว
+    ผู้ใช้ปัจจุบัน = user;
+
+    if (!รหัสใบลา) {
+      แสดงไม่พบ();
+      return;
+    }
+
+    ใบRef = db.collection("leaveRequests").doc(รหัสใบลา);
+
+    ใบRef.get().then(function (doc) {
+      if (!doc.exists) {
+        แสดงไม่พบ();
+        return;
+      }
+      ใบ = Object.assign({ id: doc.id }, doc.data());
+      วาดใบลา();
+      โหลดความเห็น();
+    }).catch(function (err) {
+      // เจอ permission-denied เมื่อเปิดใบของคนอื่นที่ตัวเองไม่มีสิทธิ์เห็น (US-08)
+      console.error("เปิดใบลาไม่สำเร็จ", err);
+      แสดงไม่พบ();
+    });
+  });
+
+  function แสดงไม่พบ() {
+    detailContainer.innerHTML = "<p>ไม่พบใบขอลาที่ต้องการ — อาจถูกลบไปแล้ว ไม่มีสิทธิ์เปิดดู หรือลิงก์ไม่ถูกต้อง</p>";
+    actionButtons.classList.add("hidden");
+    commentsSection.classList.add("hidden");
   }
-
-  var ความเห็น = window.LEAVE_DATA.approvals.filter(function (c) { return c.requestId === ใบ.id; });
-
-  วาดใบลา();
-  วาดความเห็น();
-  กล่องความเห็น.classList.remove("hidden");
-
-  document.getElementById("ปุ่มส่งความเห็น").addEventListener("click", ส่งความเห็น);
 
   // ── วาดข้อมูลใบลาลงหน้าจอ ──
   function วาดใบลา() {
@@ -39,78 +74,137 @@
       ["วันที่ยื่น", esc(ใบ.createdAt)]
     ];
 
-    var html = แถว.map(function (r) {
+    detailContainer.innerHTML = แถว.map(function (r) {
       return '<div class="field-row"><span class="k">' + r[0] + "</span><span>" + r[1] + "</span></div>";
     }).join("");
 
-    // ปุ่มอนุมัติ / ไม่อนุมัติ ขึ้นเฉพาะใบที่ยังรอพิจารณา
-    if (ใบ.status === "รอพิจารณา") {
-      html +=
-        '<div class="btn-row">' +
-        '<button type="button" class="btn-ok" id="ปุ่มอนุมัติ">อนุมัติ</button>' +
-        '<button type="button" class="btn-danger" id="ปุ่มไม่อนุมัติ">ไม่อนุมัติ</button>' +
-        "</div>";
+    var เป็นผู้อนุมัติ = ผู้ใช้ปัจจุบัน.role === "manager" || ผู้ใช้ปัจจุบัน.role === "hr";
+    var เป็นเจ้าของใบ = ผู้ใช้ปัจจุบัน.uid === ใบ.requesterId;
+    var ยังรอพิจารณา = ใบ.status === "รอพิจารณา";
+
+    var ปุ่มใดปุ่มหนึ่งแสดง = false;
+
+    if (เป็นผู้อนุมัติ && ยังรอพิจารณา) {
+      approveBtn.classList.remove("hidden");
+      rejectBtn.classList.remove("hidden");
+      ปุ่มใดปุ่มหนึ่งแสดง = true;
     } else {
-      html += '<p class="hint">ใบนี้พิจารณาแล้ว จึงเปลี่ยนสถานะต่อไม่ได้</p>';
+      approveBtn.classList.add("hidden");
+      rejectBtn.classList.add("hidden");
     }
 
-    กล่องใบลา.innerHTML = html;
-
-    if (ใบ.status === "รอพิจารณา") {
-      document.getElementById("ปุ่มอนุมัติ").addEventListener("click", function () { เปลี่ยนสถานะ("อนุมัติ"); });
-      document.getElementById("ปุ่มไม่อนุมัติ").addEventListener("click", function () { เปลี่ยนสถานะ("ไม่อนุมัติ"); });
+    if (เป็นเจ้าของใบ && ยังรอพิจารณา) {
+      deleteBtn.classList.remove("hidden");
+      ปุ่มใดปุ่มหนึ่งแสดง = true;
+    } else {
+      deleteBtn.classList.add("hidden");
     }
+
+    actionButtons.classList.toggle("hidden", !ปุ่มใดปุ่มหนึ่งแสดง);
+
+    // กล่องเขียนความเห็นใหม่ เขียนได้เฉพาะผู้อนุมัติ/ฝ่ายบุคคล (ตรงกับกฎเฝ้าข้อมูล)
+    var แสดงกล่องเขียนความเห็น = เป็นผู้อนุมัติ;
+    [commentLabel, commentInput, commentBtnRow].forEach(function (el) {
+      if (el) el.classList.toggle("hidden", !แสดงกล่องเขียนความเห็น);
+    });
   }
 
-  // ── เปลี่ยนสถานะ (สัปดาห์นี้เปลี่ยนแค่ในหน่วยความจำ) ──
+  approveBtn.addEventListener("click", function () { เปลี่ยนสถานะ("อนุมัติ"); });
+  rejectBtn.addEventListener("click", function () { เปลี่ยนสถานะ("ไม่อนุมัติ"); });
+  deleteBtn.addEventListener("click", ลบใบลา);
+  submitCommentBtn.addEventListener("click", ส่งความเห็น);
+
+  // ── เปลี่ยนสถานะ (แก้เฉพาะช่อง status เท่านั้น ห้ามเขียนทับช่องอื่น) ──
   function เปลี่ยนสถานะ(สถานะใหม่) {
-    // กฎ: จะไม่อนุมัติได้ ต้องมีความเห็นอย่างน้อย 1 รายการก่อน
-    if (สถานะใหม่ === "ไม่อนุมัติ" && ความเห็น.length === 0) {
+    if (สถานะใหม่ === "ไม่อนุมัติ" && จำนวนความเห็น === 0) {
       alert("ต้องเขียนความเห็นอย่างน้อย 1 รายการก่อน จึงจะกดไม่อนุมัติได้");
       return;
     }
-    ใบ.status = สถานะใหม่;   // แก้เฉพาะช่อง status เท่านั้น
-    วาดใบลา();
+
+    approveBtn.disabled = true;
+    rejectBtn.disabled = true;
+
+    ใบRef.update({ status: สถานะใหม่ }).then(function () {
+      ใบ.status = สถานะใหม่;
+      วาดใบลา();
+    }).catch(function (err) {
+      console.error("เปลี่ยนสถานะไม่สำเร็จ", err);
+      alert("เปลี่ยนสถานะไม่สำเร็จ: " + (err.message || "เกิดข้อผิดพลาด"));
+    }).finally(function () {
+      approveBtn.disabled = false;
+      rejectBtn.disabled = false;
+    });
   }
 
-  // ── รายการความเห็น เรียงจากเก่าไปใหม่ ──
-  function วาดความเห็น() {
-    var ที่วาง = document.getElementById("รายการความเห็น");
-    if (ความเห็น.length === 0) {
-      ที่วาง.innerHTML = "<p>ยังไม่มีความเห็นในใบนี้</p>";
+  // ── ลบใบลา (เฉพาะเจ้าของใบ และเฉพาะสถานะรอพิจารณา — ยืนยันก่อนเสมอ) ──
+  function ลบใบลา() {
+    if (!confirm('ยืนยันการลบใบลา "' + ใบ.title + '" หรือไม่ — ลบแล้วกู้คืนไม่ได้')) return;
+
+    deleteBtn.disabled = true;
+    ใบRef.delete().then(function () {
+      location.href = "leave-requests.html";
+    }).catch(function (err) {
+      console.error("ลบใบลาไม่สำเร็จ", err);
+      alert("ลบไม่สำเร็จ: " + (err.message || "เกิดข้อผิดพลาด"));
+      deleteBtn.disabled = false;
+    });
+  }
+
+  // ── โหลดรายการความเห็น เรียงจากเก่าไปใหม่ ──
+  function โหลดความเห็น() {
+    ใบRef.collection("approvals").orderBy("createdAt", "asc").get().then(function (snapshot) {
+      var รายการ = [];
+      snapshot.forEach(function (doc) { รายการ.push(doc.data()); });
+      จำนวนความเห็น = รายการ.length;
+      วาดความเห็น(รายการ);
+      commentsSection.classList.remove("hidden");
+    }).catch(function (err) {
+      console.error("โหลดความเห็นไม่สำเร็จ", err);
+      commentsList.innerHTML = "";
+      emptyComments.classList.remove("hidden");
+      commentsSection.classList.remove("hidden");
+    });
+  }
+
+  function วาดความเห็น(รายการ) {
+    if (รายการ.length === 0) {
+      commentsList.innerHTML = "";
+      emptyComments.classList.remove("hidden");
       return;
     }
-    ที่วาง.innerHTML = ความเห็น
-      .slice()
-      .sort(function (a, b) { return a.createdAt < b.createdAt ? -1 : 1; })
-      .map(function (c) {
-        return '<div class="comment"><div class="meta">' + esc(c.authorName) + " · " + esc(c.createdAt) +
-               "</div><div>" + esc(c.message) + "</div></div>";
-      }).join("");
+    emptyComments.classList.add("hidden");
+    commentsList.innerHTML = รายการ.map(function (c) {
+      return '<div class="comment"><div class="meta">' + esc(c.authorName) + " · " + esc(c.createdAt) +
+             "</div><div>" + esc(c.message) + "</div></div>";
+    }).join("");
   }
 
   // ── ส่งความเห็นใหม่ ──
   function ส่งความเห็น() {
-    var ช่อง = document.getElementById("ข้อความความเห็น");
-    var เตือน = document.getElementById("เตือนความเห็น");
-    var ข้อความ = ช่อง.value.trim();
+    var ข้อความ = commentInput.value.trim();
 
     if (!ข้อความ) {
-      เตือน.textContent = "⚠️ พิมพ์ข้อความก่อน จึงจะส่งความเห็นได้";
-      เตือน.classList.remove("hidden");
+      commentError.textContent = "⚠️ พิมพ์ข้อความก่อน จึงจะส่งความเห็นได้";
+      commentError.classList.remove("hidden");
       return;
     }
-    เตือน.classList.add("hidden");
+    commentError.classList.add("hidden");
+    submitCommentBtn.disabled = true;
 
-    // สัปดาห์ที่ 6 ยังไม่มีล็อกอิน จึงสมมติว่าผู้เขียนคือ สมหญิง รักงาน
-    ความเห็น.push({
-      id: "ap-ใหม่-" + Date.now(),
-      requestId: ใบ.id,
-      authorId: "u002", authorName: "สมหญิง รักงาน",
+    ใบRef.collection("approvals").add({
+      authorId: ผู้ใช้ปัจจุบัน.uid,
+      authorName: ผู้ใช้ปัจจุบัน.name,
       message: ข้อความ,
       createdAt: เวลาตอนนี้()
+    }).then(function () {
+      commentInput.value = "";
+      โหลดความเห็น();
+    }).catch(function (err) {
+      console.error("ส่งความเห็นไม่สำเร็จ", err);
+      commentError.textContent = "⚠️ ส่งไม่สำเร็จ: " + (err.message || "เกิดข้อผิดพลาด");
+      commentError.classList.remove("hidden");
+    }).finally(function () {
+      submitCommentBtn.disabled = false;
     });
-    ช่อง.value = "";
-    วาดความเห็น();
   }
 })();

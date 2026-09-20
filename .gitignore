@@ -21,6 +21,32 @@ desktop.ini
 .idea/
 
 
+# ── คีย์ Firebase จริงของโปรเจกต์ (สัปดาห์ที่ 7) ──
+# ไฟล์นี้ผูกกับบัญชี Firebase ของคุณเอง ห้าม push ขึ้น GitHub
+# คัดลอกจาก js/firebase-config.example.js แล้วใส่ค่าจริงของคุณเอง
+js/firebase-config.js
+
+# ── คีย์ OpenRouter จริงของโปรเจกต์ (สัปดาห์ที่ 8 — US-09 AI ช่วยจัดประเภทการลา) ──
+# ไฟล์นี้มีคีย์ API จริงของคุณเอง ห้าม push ขึ้น GitHub
+# คัดลอกจาก js/ai-config.example.js แล้วใส่ค่าจริงของคุณเอง
+js/ai-config.js
+
+# ── บัญชีทดสอบจริงของ Playwright (สัปดาห์ที่ 9) ──
+# คัดลอกจาก tests/test-accounts.example.js แล้วใส่ค่าจริงของคุณเอง
+tests/test-accounts.local.js
+
+# ── ไฟล์ที่ Playwright สร้างขึ้นตอนรันเทสต์ ──
+tests/results.json
+test-results/
+playwright-report/
+node_modules/.cache/
+
+# ── ไฟล์ชั่วคราวของ Firebase CLI ──
+.firebase/
+firebase-debug.log
+firestore-debug.log
+
+
 # ─────────────────────────────────────────────────────────────
 # ✅ วิธีตรวจว่าใช้ได้จริง — ก่อน push ทุกครั้ง พิมพ์บอก Claude ว่า
 #

@@ -5,9 +5,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ยื่นใบลาใหม่ · LeaveEasy</title>
   <link rel="stylesheet" href="css/style.css">
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js" defer></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js" defer></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js" defer></script>
+  <script src="js/firebase-config.js" defer></script>
   <script src="js/util.js" defer></script>
   <script src="js/nav.js" defer></script>
-  <script src="js/data.js" defer></script>
+  <!-- js/ai-config.js มีคีย์ OpenRouter จริง ต้องสร้างเองจาก js/ai-config.example.js (ดู README) -->
+  <script src="js/ai-config.js" defer></script>
   <script src="js/new-leave-request.js" defer></script>
 </head>
 <body>
@@ -38,8 +43,21 @@
         <label for="endDate">วันที่สิ้นสุด</label>
         <input type="date" id="endDate">
 
+        <!-- US-09: ปุ่มให้ AI ช่วยจัดประเภทการลา -->
+        <div id="ai-classifier-area" style="margin-top: 18px;">
+          <button type="button" id="ai-classify-btn" class="btn">ให้ AI ช่วยจัดประเภทการลา</button>
+
+          <div id="ai-suggestion-box" class="alert alert-ai hidden" style="margin-top: 12px;">
+            <p id="ai-suggestion-label" class="hidden" style="margin: 0 0 8px; font-size: 15px;">
+              💡 <strong>ข้อเสนอจาก AI — โปรดตรวจสอบก่อนยืนยัน</strong>
+            </p>
+            <p id="ai-suggestion-text" style="margin: 0; font-size: 15px;"></p>
+            <button type="button" id="ai-accept-btn" class="btn hidden" style="margin-top: 8px;">ตกลงใช้ข้อเสนอนี้</button>
+          </div>
+        </div>
+
         <div class="btn-row">
-          <button type="submit" id="ปุ่มบันทึก">บันทึก</button>
+          <button type="submit" id="submit-btn">บันทึก</button>
           <a class="btn btn-ghost" href="leave-requests.html">ยกเลิก</a>
         </div>
       </form>
